@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "start": "node src/index.js"
+  },
   "dependencies": {
     "google-auth-library": "^0.12.0",
     "googleapis": "^23.0.0"
