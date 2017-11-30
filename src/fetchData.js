@@ -8,14 +8,14 @@ const TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH || process.env.USERP
 const TOKEN_PATH = TOKEN_DIR + 'sheets.googleapis.com-pasx.json';
 const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
 
-function fetchData() {
+function fetchData(callback) {
   fs.readFile('client_secret.json', (err, content) => {
     if (err) {
       console.log("Error loading client secret file: " + err);
       return;
     }
 
-    authorize(JSON.parse(content), printASXPrices);
+    authorize(JSON.parse(content), getResults(callback));
   });
 }
 
@@ -76,26 +76,28 @@ function storeToken(token) {
   console.log('Token stored to ' + TOKEN_PATH);
 }
 
-function printASXPrices(auth) {
-  const sheets = google.sheets('v4');
-  sheets.spreadsheets.values.get({
-    auth: auth,
-    spreadsheetId: SPREADSHEET_ID,
-    range: 'Sheet1!A2:B7'
-  }, (err, response) => {
-    if (err) {
-      console.log('The API returned an error: ' + err);
-      return;
-    }
+function getResults(callback) {
+  return function (auth) {
+    const sheets = google.sheets('v4');
+    sheets.spreadsheets.values.get({
+      auth: auth,
+      spreadsheetId: SPREADSHEET_ID,
+      range: 'Sheet1!A2:B7'
+    }, (err, response) => {
+      if (err) {
+        console.log('The API returned an error: ' + err);
+        return;
+      }
 
-    const rows = response.values;
-    if (rows.length == 0) {
-      console.log('No data found');
-    } else {
-      console.log("response", rows);
-    }
-  });
+      const rows = response.values;
+      if (rows.length == 0) {
+        console.log('No data found');
+      } else {
+        callback(rows);
+      }
+    });
 
+  };
 }
 
 module.exports = fetchData;
